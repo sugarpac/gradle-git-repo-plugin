@@ -103,6 +103,10 @@ class GitRepoPlugin  implements Plugin<Project> {
 
     private static File ensureLocalRepo(Project project, File directory, String name, String gitUrl, String branch) {
         def repoDir = new File(directory, name)
+        if(project.hasProperty("offline") || project.rootProject.hasProperty("offline")) {
+            return repoDir;
+        }
+        
         def gitRepo;
         if(repoDir.directory || project.hasProperty("offline") || project.rootProject.hasProperty("offline")) {
             gitRepo= Grgit.open(dir: repoDir)
