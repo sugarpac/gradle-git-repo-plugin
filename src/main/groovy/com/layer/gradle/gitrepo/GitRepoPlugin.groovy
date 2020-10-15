@@ -117,7 +117,6 @@ class GitRepoPlugin  implements Plugin<Project> {
             return repoDir;
         }
         
-        def gitRepo;
         if(!repoDir.directory) {
             project.mkdir(directory)
             project.exec {
