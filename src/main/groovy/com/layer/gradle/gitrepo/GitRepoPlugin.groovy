@@ -56,11 +56,21 @@ class GitRepoPlugin  implements Plugin<Project> {
                 Task publishAndPush = project.tasks.create(project.gitPublishConfig.publishAndPushTask)
                 publishAndPush.doFirst {
                     def gitDir = repositoryDir(project, project.gitPublishConfig.org + "/" + project.gitPublishConfig.repo)
-                    def gitRepo= Grgit.open(dir: gitDir)
-
-                    gitRepo.add(patterns: ['.'])
-                    gitRepo.commit(message: "published artifacts for  ${project.getGroup()} ${project.version}")
-                    gitRepo.push()
+                    project.exec {
+                        executable "git"
+                        workingDir gitDir
+                        args "add", "*"
+                    }
+                    project.exec {
+                        executable "git"
+                        workingDir gitDir
+                        args "commit", "-a", "-m", "published artifacts for  ${project.getGroup()} ${project.version}"
+                    }
+                    project.exec {
+                        executable "git"
+                        workingDir gitDir
+                        args "push", "-u", "origin", "master"
+                    }
                 }
                 publishAndPush.dependsOn(publishTask(project))
             }
@@ -108,14 +118,23 @@ class GitRepoPlugin  implements Plugin<Project> {
         }
         
         def gitRepo;
-        if(repoDir.directory || project.hasProperty("offline") || project.rootProject.hasProperty("offline")) {
-            gitRepo= Grgit.open(dir: repoDir)
-        } else {
-            gitRepo= Grgit.clone(dir: repoDir, uri: gitUrl)
+        if(!repoDir.directory) {
+            project.mkdir(directory)
+            project.exec {
+                workingDir directory
+                executable "git"
+                args "clone", gitUrl, name
+            }
         }
-        if(!(project.hasProperty("offline") || (project.rootProject.hasProperty("offline")))) {
-            gitRepo.checkout(branch: branch)
-            gitRepo.pull()
+        project.exec {
+            workingDir repoDir
+            executable "git"
+            args "checkout", branch
+        }
+        project.exec {
+            workingDir repoDir
+            executable "git"
+            args "pull"
         }
 
         return repoDir;
