@@ -113,9 +113,12 @@ class GitRepoPlugin  implements Plugin<Project> {
 
     private static File ensureLocalRepo(Project project, File directory, String name, String gitUrl, String branch) {
         def repoDir = new File(directory, name)
+        println project.properties.toString()
         if (project.hasProperty("offline") || project.rootProject.hasProperty("offline")) {
+            println 'offline ${project.name} ${name}'
             return repoDir;
         }
+        println 'online ${project.name} ${name}'
         
         def gitRepo;
         if(!repoDir.directory) {
